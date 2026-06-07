@@ -13,7 +13,8 @@ def get_confounders(df):
     exclude = [
         'treatment', 'outcome', 'Unnamed: 0', 'ptid', 'death', 'swang1', 
         'dth30', 'sadmdte', 'dschdte', 'dthdte', 'lstctdte',
-        'cat1', 'sex', 'race', 'income', 'ninsclas', 'dnr1'
+        'cat1', 'sex', 'race', 'income', 'ninsclas', 'dnr1', 'ca', 'cat2',
+        'adld3p', 'urin1'
     ]
     return [col for col in df.columns if col not in exclude]
 

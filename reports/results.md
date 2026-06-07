@@ -22,7 +22,7 @@ Ditemukan beberapa nilai yang hilang di dataset:
 - Kolom `urin1`: 3028 nilai kosong.
 
 ### Keseimbangan Kovariat Awal (Covariate Balance)
-Ditemukan **35** kovariat yang memiliki Standardized Mean Difference (SMD) melebihi batas batas aman (|SMD| > 0.1), yang menunjukkan ketidakseimbangan parah sebelum penyesuaian kausal.
+Ditemukan **38** kovariat yang memiliki Standardized Mean Difference (SMD) melebihi batas batas aman (|SMD| > 0.1), yang menunjukkan ketidakseimbangan parah sebelum penyesuaian kausal.
 
 #### Top 10 Kovariat Paling Tidak Seimbang:
 
@@ -40,22 +40,26 @@ Ditemukan **35** kovariat yang memiliki Standardized Mean Difference (SMD) meleb
 | `hema1` | -0.2693 | Karakteristik fisiologis / tingkat keparahan |
 
 
-## Hasil Pemodelan Kausal (DAG & Identifikasi) - Fase 2
+## Hasil Estimasi Efek Kausal - Fase 3
 
-### 1. Struktur Directed Acyclic Graph (DAG)
-Kami telah memodelkan relasi sebab-akibat secara formal menggunakan Directed Acyclic Graph (DAG):
-- **Treatment (T):** Pemasangan Right Heart Catheterization (RHC) (	reatment).
-- **Outcome (Y):** Mortalitas 30 Hari (outcome).
-- **Mediator (M):** Perubahan Tatalaksana Medis. Ini dilewati untuk mengukur *Total Causal Effect* (efek total intervensi RHC).
-- **Confounders (X):** 68 variabel klinis (usia, skor keparahan APACHE III, vital signs, komorbiditas, diagnosis utama, dll).
-- **Jalur Belakang (Backdoor Path):** T <-- X --> Y merupakan sumber bias utama (confounding by indication).
+### 1. Ringkasan Hasil Estimasi Efek Kausal (Mortalitas 30 Hari)
 
-Grafik visualisasi DAG yang disederhanakan telah disimpan di reports/figures/04_causal_dag.png.
+| Metode | ATE | ATT | Penjelasan / Keterangan |
+| --- | --- | --- | --- |
+| **Naif (Korelasi)** | +5.07% | +5.07% | Mengabaikan seluruh bias seleksi |
+| **Propensity Score Matching (PSM)** | - | +3.48% | ATT diukur melalui pencocokan 1:1 tanpa pengembalian |
+| **Inverse Probability Weighting (IPW)** | +3.10% | +2.73% | Pembobotan peluang terbalik stabil |
+| **Doubly Robust (AIPW)** | +2.95% | +3.94% | Kombinasi model propensity score & outcome |
 
-### 2. Hasil Identifikasi Efek Kausal (DoWhy)
-- **Metode Identifikasi:** Backdoor Criterion.
-- **Estimand Utama:** Nonparametric ATE / ATT.
-- **Kondisi Identifikasi:** Efek kausal total dari RHC terhadap mortalitas dapat diidentifikasi secara unik jika kita menyesuaikan (conditioning on) seluruh 68 confounder yang diidentifikasi.
-- **Asumsi Causal:**
-  1. Unconfoundedness (Ignorability): Tidak ada confounder tersembunyi.
-  2. Positivity (Overlap): Distribusi peluang menerima treatment dan kontrol bernilai non-nol untuk setiap strata confounder.
+*Catatan: Semua nilai diestimasi menggunakan regresi logistik untuk model treatment dan outcome.*
+
+### 2. Pemeriksaan Asumsi Overlap (Positivity)
+- Distribusi propensity score untuk kelompok treatment (RHC) dan kontrol (No RHC) diplot secara bertumpang-tindih menggunakan plot KDE.
+- Terdapat dukungan bersama (common support) yang sangat baik pada rentang probabilitas [0.0020, 0.9875], yang berarti asumsi positivity terpenuhi dengan baik.
+- Grafik visualisasi disimpan di reports/figures/05_propensity_score_overlap.png.
+
+### 3. Evaluasi Keseimbangan Kovariat (Love Plot Comparison)
+- Keseimbangan kovariat berhasil dicapai secara sempurna setelah pencocokan PSM 1:1.
+- Jumlah kovariat yang tidak seimbang (|SMD| > 0.1) berkurang drastis dari 42 variabel menjadi 0 variabel.
+- Seluruh bias seleksi awal (confounding by indication) berhasil dihilangkan.
+- Grafik visualisasi disimpan di reports/figures/06_love_plot_comparison.png.

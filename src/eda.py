@@ -32,7 +32,7 @@ def run_eda():
     ]
     
     # Define categorical confounders
-    cat_confounders = ['cat1', 'sex', 'race', 'income', 'ninsclas', 'dnr1']
+    cat_confounders = ['cat1', 'sex', 'race', 'income', 'ninsclas', 'dnr1', 'ca', 'cat2']
     
     # Organ system failure flags (mostly binary 1/0 or yes/no represented as strings/ints)
     # Let's map any yes/no in other columns to 1/0

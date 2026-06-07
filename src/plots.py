@@ -263,3 +263,118 @@ def plot_dag(output_path=None):
     plt.savefig(output_path, dpi=300)
     plt.close()
     print(f"DAG plot saved to {output_path}")
+
+def plot_propensity_score_distribution(df, ps_col='propensity_score', output_path=None):
+    """
+    Plots the distribution of propensity scores for treatment vs control (overlap evaluation).
+    """
+    if output_path is None:
+        output_path = os.path.join(PROJECT_ROOT, "reports", "figures", "05_propensity_score_overlap.png")
+        
+    plt.figure(figsize=(8, 5))
+    sns.kdeplot(
+        data=df[df['treatment'] == 0],
+        x=ps_col,
+        fill=True,
+        color=PALETTE['control'],
+        label='Kontrol (No RHC)',
+        alpha=0.4,
+        linewidth=2
+    )
+    sns.kdeplot(
+        data=df[df['treatment'] == 1],
+        x=ps_col,
+        fill=True,
+        color=PALETTE['treatment'],
+        label='Treatment (RHC)',
+        alpha=0.4,
+        linewidth=2
+    )
+    
+    plt.title("Distribusi Propensity Score: Evaluasi Asumsi Overlap (Positivity)", pad=15, fontsize=12, fontweight='bold')
+    plt.xlabel("Propensity Score (P(RHC | X))")
+    plt.ylabel("Kepadatan (Density)")
+    plt.xlim(0, 1)
+    plt.legend(loc="upper right")
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.tight_layout()
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+    print(f"Propensity score overlap plot saved to {output_path}")
+
+def plot_love_plot_comparison(unadjusted_smd_df, adjusted_smd_df, method_label="Matched/Weighted", output_path=None):
+    """
+    Generates a Love Plot comparing SMDs before vs after adjustment.
+    """
+    if output_path is None:
+        output_path = os.path.join(PROJECT_ROOT, "reports", "figures", "06_love_plot_comparison.png")
+        
+    merged = pd.merge(
+        unadjusted_smd_df[['covariate', 'smd']], 
+        adjusted_smd_df[['covariate', 'smd']], 
+        on='covariate', 
+        suffixes=('_unadj', '_adj')
+    )
+    
+    merged['abs_unadj'] = merged['smd_unadj'].abs()
+    merged = merged.sort_values(by='abs_unadj', ascending=True)
+    
+    if len(merged) > 30:
+        merged_plot = merged.tail(30)
+    else:
+        merged_plot = merged
+        
+    plt.figure(figsize=(10, 9))
+    
+    # Plot unadjusted (Slate Gray)
+    plt.scatter(
+        merged_plot['smd_unadj'], 
+        range(len(merged_plot)), 
+        color='#7f8c8d', 
+        zorder=3, 
+        s=60, 
+        label="Sebelum Penyesuaian (Unadjusted)",
+        alpha=0.7
+    )
+    
+    # Plot adjusted (Green)
+    plt.scatter(
+        merged_plot['smd_adj'], 
+        range(len(merged_plot)), 
+        color='#27ae60', 
+        zorder=4, 
+        s=60, 
+        label=f"Sesudah Penyesuaian ({method_label})",
+        marker='D'
+    )
+    
+    # Connect dots
+    for i in range(len(merged_plot)):
+        row = merged_plot.iloc[i]
+        plt.plot(
+            [row['smd_unadj'], row['smd_adj']], 
+            [i, i], 
+            color='#bdc3c7', 
+            linestyle=':', 
+            zorder=2
+        )
+        
+    plt.yticks(range(len(merged_plot)), merged_plot['covariate'])
+    plt.axvline(x=0.0, color='gray', linestyle='-', linewidth=1)
+    plt.axvline(x=0.1, color='red', linestyle='--', linewidth=1.2)
+    plt.axvline(x=-0.1, color='red', linestyle='--', linewidth=1.2)
+    plt.axvspan(-0.1, 0.1, color='green', alpha=0.08, label='Zona Seimbang (|SMD| < 0.1)')
+    
+    plt.title("Perbandingan Keseimbangan Kovariat (Covariate Balance)", pad=15, fontsize=13, fontweight='bold')
+    plt.xlabel("Standardized Mean Difference (SMD)")
+    plt.ylabel("Kovariat (Confounders)")
+    plt.legend(loc="lower right")
+    plt.grid(True, linestyle=':', alpha=0.5)
+    plt.tight_layout()
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+    print(f"Love plot comparison saved to {output_path}")
