@@ -38,3 +38,24 @@ Ditemukan **35** kovariat yang memiliki Standardized Mean Difference (SMD) meleb
 | `crea1` | +0.2696 | Kadar kreatinin serum (fungsi ginjal) |
 | `resp` | -0.2695 | Karakteristik fisiologis / tingkat keparahan |
 | `hema1` | -0.2693 | Karakteristik fisiologis / tingkat keparahan |
+
+
+## Hasil Pemodelan Kausal (DAG & Identifikasi) - Fase 2
+
+### 1. Struktur Directed Acyclic Graph (DAG)
+Kami telah memodelkan relasi sebab-akibat secara formal menggunakan Directed Acyclic Graph (DAG):
+- **Treatment (T):** Pemasangan Right Heart Catheterization (RHC) (	reatment).
+- **Outcome (Y):** Mortalitas 30 Hari (outcome).
+- **Mediator (M):** Perubahan Tatalaksana Medis. Ini dilewati untuk mengukur *Total Causal Effect* (efek total intervensi RHC).
+- **Confounders (X):** 68 variabel klinis (usia, skor keparahan APACHE III, vital signs, komorbiditas, diagnosis utama, dll).
+- **Jalur Belakang (Backdoor Path):** T <-- X --> Y merupakan sumber bias utama (confounding by indication).
+
+Grafik visualisasi DAG yang disederhanakan telah disimpan di reports/figures/04_causal_dag.png.
+
+### 2. Hasil Identifikasi Efek Kausal (DoWhy)
+- **Metode Identifikasi:** Backdoor Criterion.
+- **Estimand Utama:** Nonparametric ATE / ATT.
+- **Kondisi Identifikasi:** Efek kausal total dari RHC terhadap mortalitas dapat diidentifikasi secara unik jika kita menyesuaikan (conditioning on) seluruh 68 confounder yang diidentifikasi.
+- **Asumsi Causal:**
+  1. Unconfoundedness (Ignorability): Tidak ada confounder tersembunyi.
+  2. Positivity (Overlap): Distribusi peluang menerima treatment dan kontrol bernilai non-nol untuk setiap strata confounder.

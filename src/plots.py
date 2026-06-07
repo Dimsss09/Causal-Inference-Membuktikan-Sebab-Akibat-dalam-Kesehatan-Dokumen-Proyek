@@ -183,3 +183,83 @@ def plot_love_plot(smd_df, output_path=None, title="Love Plot: Keseimbangan Kova
     plt.savefig(output_path, dpi=300)
     plt.close()
     print(f"Love plot saved to {output_path}")
+
+def plot_dag(output_path=None):
+    """
+    Plots a clean, simplified causal Directed Acyclic Graph (DAG).
+    """
+    if output_path is None:
+        output_path = os.path.join(PROJECT_ROOT, "reports", "figures", "04_causal_dag.png")
+        
+    import networkx as nx
+    
+    # Create directed graph
+    G = nx.DiGraph()
+    
+    # Add nodes with custom labels
+    nodes = {
+        'X': "Confounders\n(APACHE, Usia,\nKomorbiditas, dll)",
+        'T': "Treatment\n(RHC)",
+        'Y': "Outcome\n(Mortalitas 30 Hari)",
+        'M': "Mediator\n(Perubahan\nTatalaksana)"
+    }
+    
+    for k, v in nodes.items():
+        G.add_node(k, label=v)
+        
+    # Add edges
+    edges = [
+        ('X', 'T'),
+        ('X', 'Y'),
+        ('T', 'Y'),
+        ('T', 'M'),
+        ('M', 'Y')
+    ]
+    G.add_edges_from(edges)
+    
+    # Define custom positions for layout (Left-to-Right + hierarchical)
+    pos = {
+        'X': (0.5, 0.8),  # Confounders at the top center
+        'T': (0.15, 0.2), # Treatment bottom-left
+        'M': (0.5, 0.2),  # Mediator bottom-middle
+        'Y': (0.85, 0.2)  # Outcome bottom-right
+    }
+    
+    plt.figure(figsize=(9, 6))
+    
+    # Draw nodes
+    # Confounder (X) - Slate Gray
+    nx.draw_networkx_nodes(G, pos, nodelist=['X'], node_color='#7f8c8d', node_size=3500, alpha=0.95, edgecolors='black', linewidths=1.5)
+    # Treatment (T) - Red/Coral
+    nx.draw_networkx_nodes(G, pos, nodelist=['T'], node_color=PALETTE['treatment'], node_size=3500, alpha=0.95, edgecolors='black', linewidths=1.5)
+    # Outcome (Y) - Blue/Slate
+    nx.draw_networkx_nodes(G, pos, nodelist=['Y'], node_color=PALETTE['control'], node_size=3500, alpha=0.95, edgecolors='black', linewidths=1.5)
+    # Mediator (M) - Muted Blue
+    nx.draw_networkx_nodes(G, pos, nodelist=['M'], node_color=PALETTE['neutral_blue'], node_size=3500, alpha=0.9, edgecolors='black', linewidths=1.5, node_shape='s')
+    
+    # Draw edges with arrows
+    nx.draw_networkx_edges(
+        G, pos, 
+        edgelist=edges, 
+        width=2, 
+        arrowstyle='-|>', 
+        arrowsize=25, 
+        edge_color='#2c3e50',
+        connectionstyle='arc3,rad=0.02'
+    )
+    
+    # Draw labels
+    nx.draw_networkx_labels(G, pos, labels=nodes, font_size=8, font_family='sans-serif', font_color='white', font_weight='bold')
+    
+    # Backdoor path text annotation
+    plt.text(0.32, 0.55, "Jalur Belakang (Backdoor): T <-- X --> Y\n(Bias Indikasi, harus disesuaikan)", fontsize=9, color='#c0392b', fontweight='bold', ha='center')
+    plt.text(0.5, 0.05, "Jalur Kausal Efek Total (T --> Y dan T --> M --> Y)", fontsize=9, color='#27ae60', fontweight='bold', ha='center')
+    
+    plt.title("Causal DAG: Pemasangan RHC & Mortalitas ICU", pad=20, fontsize=14, fontweight='bold')
+    plt.axis('off')
+    plt.tight_layout()
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+    print(f"DAG plot saved to {output_path}")
