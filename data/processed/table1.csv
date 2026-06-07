@@ -1,0 +1,16 @@
+Variabel Klinis & Demografi,RHC Raw Mean,Kontrol Raw Mean,SMD Raw,RHC Matched Mean,Kontrol Matched Mean,SMD Matched
+Usia (Tahun),60.75,61.76,-0.0614,60.73,60.80,-0.0044
+Pendapatan: < $11k (%),52.43,58.60,-0.1245,52.40,49.61,+0.0559
+Skor APACHE III (Penyakit Akut),60.74,50.93,+0.5014,60.70,61.15,-0.0213
+Mean Blood Pressure (mmHg),68.20,84.87,-0.4551,68.23,67.41,+0.0240
+PaO2/FiO2 Ratio (Oksigenasi),192.43,240.63,-0.4332,192.51,194.43,-0.0183
+Kadar Serum Kreatinin (Ginjal),2.47,1.92,+0.2696,2.47,2.47,+0.0035
+Kadar Hematokrit (%),30.51,32.70,-0.2693,30.52,30.06,+0.0606
+Suhu Tubuh (Celcius),37.59,37.63,-0.0214,37.60,37.68,-0.0453
+Komorbid: Kardiovaskular (%),42.31,28.36,+0.2950,42.28,41.59,+0.0139
+Komorbid: Respirasi (%),28.94,41.71,-0.2696,28.95,29.41,-0.0101
+Komorbid: Renal/Ginjal (%),6.78,4.14,+0.1163,6.78,5.73,+0.0435
+Komorbid: Kanker Akif (%),15.29,17.97,-0.0719,15.30,15.16,+0.0038
+Diagnosis: Gagal Organ Ganda & Sepsis (%),32.05,14.84,+0.4149,32.07,32.98,-0.0196
+Diagnosis: PPOK / Paru Kronis (%),2.66,11.24,-0.3424,2.66,2.93,-0.0167
+Diagnosis: Gagal Jantung Kongestif (%),9.57,6.96,+0.0950,9.57,8.25,+0.0466

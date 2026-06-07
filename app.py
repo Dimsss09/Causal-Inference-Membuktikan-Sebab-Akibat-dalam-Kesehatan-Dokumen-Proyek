@@ -346,6 +346,22 @@ elif page == "1. Eksplorasi Data & Imbalance":
         "</div>", unsafe_allow_html=True
     )
 
+    st.markdown("---")
+    st.subheader("Tabel Karakteristik Klinis Pasien (Table 1) - Pre vs Post Matching")
+    st.write(
+        "Di bawah ini adalah Tabel Karakteristik Klinis (Table 1) standar jurnal medis. Tabel ini membandingkan "
+        "distribusi demografi, status fisiologis (keparahan penyakit), komorbiditas, dan diagnosis masuk "
+        "antara kelompok RHC dan Kontrol. Terlihat bahwa setelah pencocokan (Matched), perbedaan (SMD) di semua "
+        "variabel klinis utama turun drastis hingga mendekati 0.00."
+    )
+    
+    table1_path = os.path.join(PROJECT_ROOT, "data", "processed", "table1.csv")
+    if os.path.exists(table1_path):
+        table1_df = pd.read_csv(table1_path)
+        st.dataframe(table1_df, hide_index=True, use_container_width=True)
+    else:
+        st.warning("Tabel karakteristik klinis (Table 1) tidak ditemukan. Jalankan generate_table1.py.")
+
 elif page == "2. Pemodelan Kausal & DAG":
     st.header("2. Pemodelan Kausal (Directed Acyclic Graph - DAG)")
     st.write(
