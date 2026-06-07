@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+import base64
 
 # Set page config for premium look
 st.set_page_config(
@@ -11,58 +12,179 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for modern styling
+# Project root path resolution
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+# Helper function to load image to base64
+def get_image_base64(path):
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return None
+
+# Custom CSS for modern premium styling (Industry Standard)
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    
+    /* Apply Font Globally */
+    .stApp, .main-title, .subtitle, .metric-card, .explanation-box, p, span, div, h1, h2, h3, h4, h5, h6, label {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    }
+    
+    /* App Body Background with subtle medical theme radial gradients */
+    [data-testid="stAppViewContainer"] {
+        background: radial-gradient(circle at 80% 20%, rgba(52, 152, 219, 0.1) 0%, rgba(255, 255, 255, 0) 50%),
+                    radial-gradient(circle at 20% 80%, rgba(26, 188, 156, 0.08) 0%, rgba(255, 255, 255, 0) 50%),
+                    linear-gradient(135deg, #f4f7f6 0%, #ffffff 100%) !important;
+    }
+    
+    /* Sidebar Styling - Modern dark slate gradient */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    [data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label {
+        color: #eceff1 !important;
+    }
+    
+    /* Custom radio buttons in sidebar */
+    [data-testid="stSidebar"] div[role="radiogroup"] label {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        margin-bottom: 10px !important;
+        transition: all 0.25s ease-in-out !important;
+        cursor: pointer;
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] label:hover {
+        background-color: rgba(255, 255, 255, 0.12) !important;
+        border-color: #1abc9c !important;
+        transform: translateX(4px);
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] {
+        background: linear-gradient(90deg, #1abc9c 0%, #16a085 100%) !important;
+        border-color: #1abc9c !important;
+        color: white !important;
+        box-shadow: 0 4px 10px rgba(26, 188, 156, 0.3);
+    }
+    
+    /* Main Titles */
     .main-title {
         font-size: 38px;
         font-weight: 800;
-        color: #2c3e50;
+        background: linear-gradient(135deg, #2c3e50 0%, #2980b9 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin-bottom: 5px;
+        letter-spacing: -0.5px;
     }
     .subtitle {
         font-size: 18px;
         color: #7f8c8d;
         margin-bottom: 25px;
+        font-weight: 400;
     }
+    
+    /* Premium Metric Cards with Hover Animation */
     .metric-card {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px 20px;
-        border-left: 5px solid #2980b9;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px !important;
+        padding: 20px 22px !important;
+        border: 1px solid rgba(224, 231, 238, 0.9) !important;
+        border-left: 6px solid #2980b9;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         margin-bottom: 15px;
+        overflow: hidden;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+        border-color: rgba(41, 128, 185, 0.4) !important;
     }
     .metric-title {
         font-size: 13px;
         color: #7f8c8d;
         text-transform: uppercase;
         font-weight: bold;
+        letter-spacing: 0.5px;
     }
     .metric-value {
-        font-size: 26px;
+        font-size: 28px;
         font-weight: 800;
         color: #2c3e50;
+        margin-top: 4px;
     }
     .metric-delta {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: bold;
+        margin-top: 6px;
     }
+    
+    /* Educational Info Box */
     .explanation-box {
-        background-color: #ebf5fb;
-        border-radius: 8px;
-        padding: 15px 20px;
-        border: 1px solid #aed6f1;
+        background: rgba(235, 245, 251, 0.8) !important;
+        backdrop-filter: blur(8px);
+        border-radius: 12px !important;
+        padding: 20px 24px !important;
+        border: 1px solid rgba(174, 214, 241, 0.7) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01) !important;
         margin-bottom: 20px;
+    }
+    .explanation-box h4 {
+        color: #2980b9 !important;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+    .explanation-box ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    .explanation-box li {
+        margin-bottom: 8px;
+        color: #2c3e50;
+        line-height: 1.5;
+    }
+    .explanation-box li:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Logo Pulsing Animation */
+    .logo-img {
+        animation: logoPulse 4s infinite ease-in-out;
+        transition: all 0.3s ease;
+    }
+    .logo-img:hover {
+        transform: rotate(5deg) scale(1.05);
+    }
+    @keyframes logoPulse {
+        0% { transform: scale(1); filter: drop-shadow(0 2px 5px rgba(26, 188, 156, 0.15)); }
+        50% { transform: scale(1.03); filter: drop-shadow(0 8px 20px rgba(26, 188, 156, 0.4)); }
+        100% { transform: scale(1); filter: drop-shadow(0 2px 5px rgba(26, 188, 156, 0.15)); }
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Project root path resolution
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+# Sidebar Logo and Title
+logo_img_path = os.path.join(PROJECT_ROOT, "reports", "figures", "medical_causal_logo.png")
+logo_base64 = get_image_base64(logo_img_path)
 
-# Sidebar Navigation
-st.sidebar.title("🏥 RHC Causal Inference")
+if logo_base64:
+    st.sidebar.markdown(f"""
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; flex-direction: column; padding-top: 10px;">
+            <img class="logo-img" src="data:image/png;base64,{logo_base64}" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid #1abc9c; object-fit: cover; background-color: white;" />
+            <h2 style="color: white; margin-top: 12px; font-size: 20px; font-weight: 700; text-align: center; font-family: 'Outfit', sans-serif;">RHC Causal Lab</h2>
+        </div>
+    """, unsafe_allow_html=True)
+else:
+    st.sidebar.markdown("# 🏥 RHC Causal Lab")
+
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigasi Halaman:",

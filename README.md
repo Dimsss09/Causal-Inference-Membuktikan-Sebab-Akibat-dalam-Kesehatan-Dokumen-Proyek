@@ -44,6 +44,46 @@ Setelah menyeimbangkan karakteristik klinis antara kelompok RHC dan Kontrol, bia
 
 ---
 
+## 🧠 Detail Model & Metodologi Kausal
+
+Analisis ini menggunakan pendekatan statistika formal untuk mengoreksi bias seleksi (*confounding by indication*) pada data observasional:
+
+### 1. Estimasi Propensity Score (Model Treatment)
+- **Model:** Logistic Regression (Regresi Logistik).
+- **Tujuan:** Mengestimasi probabilitas bersyarat seorang pasien menerima tindakan RHC berdasarkan karakteristik klinis awal: $e(X) = P(T=1 | X)$.
+- **Variabel Masukan ($X$):** 68 variabel klinis termasuk demografi (usia, jenis kelamin, ras, pendapatan, asuransi), komorbiditas (gagal ginjal, kanker, penyakit jantung, penyakit paru-paru kronis, dll.), status fisiologis (skor APACHE III, MAP, tekanan darah, laju napas, suhu tubuh, pH arteri, PaO2/FiO2), dan diagnosis primer masuk ICU.
+
+### 2. Propensity Score Matching (PSM)
+- **Metode:** 1:1 Nearest Neighbor Matching tanpa penggantian (*without replacement*).
+- **Caliper:** Ditetapkan sebesar $0.05 \times \sigma_{\text{logit(PS)}}$ untuk menjamin kecocokan yang ketat dan menghindari pencocokan paksa pada daerah ekstrim.
+- **Hasil:** Berhasil mencocokkan kelompok treated dan control sehingga sisa ketidakseimbangan kovariat (SMD) bernilai 0.00 (berhasil menyeimbangkan 42 imbalance awal).
+
+### 3. Inverse Probability Weighting (IPW)
+- **Metode:** Stabilized IPW Weights untuk menghindari bobot ekstrim yang tidak stabil:
+  - Untuk Treated: $w_i = \frac{T_i \cdot P(T=1)}{e(X_i)}$
+  - Untuk Kontrol: $w_i = \frac{(1 - T_i) \cdot P(T=0)}{1 - e(X_i)}$
+- **Tujuan:** Membuat populasi pseudo (*pseudo-population*) di mana variabel treatment tidak lagi bergantung pada confounder $X$.
+
+### 4. Doubly Robust Estimator (AIPW - Augmented Inverse Probability Weighting)
+- **Metode:** Menggabungkan model peluang treatment (Logistic Regression) dengan model regresi outcome (Weighted Least Squares).
+- **Karakteristik:** Memiliki sifat *Double Robustness*. Estimator ini akan tetap konsisten jika **salah satu** dari model treatment atau model outcome dispesifikasikan secara benar (tidak perlu keduanya benar). Hal ini memberikan proteksi ganda terhadap mis-spesifikasi model.
+
+---
+
+## 💻 Teknologi Web Dashboard (Tech Stack)
+
+Dashboard interaktif dibangun dengan standar industri modern untuk visualisasi biostatistik:
+
+1. **Streamlit Framework (Python):** Memungkinkan rendering antarmuka yang cepat dan reaktif berbasis python untuk visualisasi data langsung.
+2. **Custom CSS & Glassmorphism:**
+   - Menyuntikkan radial dan linear gradients untuk background bernuansa medis profesional.
+   - Mengimplementasikan glassmorphic container cards (`backdrop-filter: blur`) dengan efek bayangan halus untuk meningkatkan estetika premium.
+   - Efek mikro-interaksi seperti hover scale up (`transform: translateY(-5px)`) dan transitions halus (`cubic-bezier`) pada kartu metrik utama.
+3. **Typography & Styling:** Mengimpor Google Font **Outfit** secara dinamis untuk tipografi modern yang bersih dan mudah dibaca.
+4. **Dynamic Image Base64 Encoding:** Membaca berkas logo `medical_causal_logo.png` secara langsung, mengubahnya ke representasi base64, dan merendernya dalam tag HTML kustom untuk animasi denyut logo (pulsing logo effect) di sidebar.
+
+---
+
 ## 🛡️ Uji Refutasi DoWhy & Sensitivitas E-value
 Kredibilitas model kausal divalidasi dengan stress-testing DoWhy:
 
@@ -51,6 +91,31 @@ Kredibilitas model kausal divalidasi dengan stress-testing DoWhy:
 2. **Random Common Cause Test:** Efek kausal tetap stabil di angka **+3.99%** (p-value = 1.00) setelah variabel confounder acak ditambahkan. Lolos.
 3. **Data Subset Test:** Efek kausal tetap konsisten di angka **+3.87%** (p-value = 0.90) pada 80% subset acak data. Lolos.
 4. **Analisis Sensitivitas E-value:** Diperoleh **E-value = 1.32**. Sangat tidak mungkin ada confounder tersembunyi yang belum diselaraskan yang memiliki kekuatan Risk Ratio sebesar 1.32 terhadap keputusan tindakan RHC dan mortalitas secara bersamaan. Temuan kausal ini terbukti **sangat kokoh**.
+
+---
+
+## 📸 Screenshot Evidence
+
+Berikut adalah bukti visual keluaran pipeline analisis kausal dan dashboard interaktif:
+
+### 1. Logo Utama Proyek
+![Medical Causal Logo](reports/figures/medical_causal_logo.png)
+
+### 2. Causal Directed Acyclic Graph (DAG)
+DAG yang mendefinisikan hubungan struktural antara Variabel Treatment, Outcome, dan 68 Confounders.
+![Causal DAG](reports/figures/04_causal_dag.png)
+
+### 3. Distribusi Propensity Score & Overlap (Common Support)
+KDE plot yang menunjukkan overlap propensity score antara kelompok RHC (treated) dan kontrol.
+![Propensity Score Overlap](reports/figures/05_propensity_score_overlap.png)
+
+### 4. Perbandingan Love Plot (Keseimbangan Kovariat)
+Standardized Mean Difference (SMD) sebelum vs sesudah adjustment. Terlihat setelah matching, SMD turun hingga di bawah threshold 0.1 (keseimbangan sempurna).
+![Love Plot Comparison](reports/figures/06_love_plot_comparison.png)
+
+### 5. Hasil Estimasi Efek Kausal & CI Bootstrap
+Perbandingan point estimates dan 95% Confidence Intervals dari berbagai metode estimasi kausal.
+![Causal Effect Comparison](reports/figures/07_effect_comparison.png)
 
 ---
 
