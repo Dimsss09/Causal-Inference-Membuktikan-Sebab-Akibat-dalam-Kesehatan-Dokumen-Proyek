@@ -27,9 +27,14 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
     
-    /* Apply Font Globally */
-    .stApp, .main-title, .subtitle, .metric-card, .explanation-box, p, span, div, h1, h2, h3, h4, h5, h6, label {
+    /* Apply Font Globally to stApp */
+    .stApp {
         font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    }
+    
+    /* Custom titles keep the Outfit font */
+    .main-title, .subtitle, .metric-card, .explanation-box {
+        font-family: 'Outfit', sans-serif !important;
     }
     
     /* App Body Background with subtle medical theme radial gradients */
@@ -39,17 +44,23 @@ st.markdown("""
                     linear-gradient(135deg, #f4f7f6 0%, #ffffff 100%) !important;
     }
     
-    /* Force Dark Slate text color inside Main Container to prevent white text on light background */
-    [data-testid="stAppViewContainer"] p, 
-    [data-testid="stAppViewContainer"] span:not(.main-title):not(.subtitle), 
-    [data-testid="stAppViewContainer"] label, 
-    [data-testid="stAppViewContainer"] li,
-    [data-testid="stAppViewContainer"] h1:not(.main-title), 
-    [data-testid="stAppViewContainer"] h2, 
-    [data-testid="stAppViewContainer"] h3, 
-    [data-testid="stAppViewContainer"] h4, 
-    [data-testid="stAppViewContainer"] h5, 
-    [data-testid="stAppViewContainer"] h6 {
+    /* Force Dark Slate text color ONLY on content elements, avoiding header/deploy buttons and icons */
+    .stMarkdown p, 
+    .stMarkdown li, 
+    .stMarkdown span:not(.main-title):not(.subtitle), 
+    .stMarkdown h1:not(.main-title), 
+    .stMarkdown h2, 
+    .stMarkdown h3, 
+    .stMarkdown h4, 
+    .stMarkdown h5, 
+    .stMarkdown h6,
+    .stText p,
+    [data-testid="stWidgetLabel"] p,
+    [data-testid="stWidgetLabel"] label,
+    [data-testid="stWidgetLabel"] span,
+    .stDataFrame td,
+    .stDataFrame th,
+    .stDataFrame span {
         color: #1e293b !important;
     }
     
