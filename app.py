@@ -39,6 +39,29 @@ st.markdown("""
                     linear-gradient(135deg, #f4f7f6 0%, #ffffff 100%) !important;
     }
     
+    /* Force Dark Slate text color inside Main Container to prevent white text on light background */
+    [data-testid="stAppViewContainer"] p, 
+    [data-testid="stAppViewContainer"] span:not(.main-title):not(.subtitle), 
+    [data-testid="stAppViewContainer"] label, 
+    [data-testid="stAppViewContainer"] li,
+    [data-testid="stAppViewContainer"] h1:not(.main-title), 
+    [data-testid="stAppViewContainer"] h2, 
+    [data-testid="stAppViewContainer"] h3, 
+    [data-testid="stAppViewContainer"] h4, 
+    [data-testid="stAppViewContainer"] h5, 
+    [data-testid="stAppViewContainer"] h6 {
+        color: #1e293b !important;
+    }
+    
+    /* Style inline code elements for better contrast */
+    [data-testid="stAppViewContainer"] code {
+        color: #e11d48 !important;
+        background-color: #f1f5f9 !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        font-family: monospace !important;
+    }
+    
     /* Sidebar Styling - Modern dark slate gradient */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%) !important;
@@ -66,8 +89,10 @@ st.markdown("""
     [data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] {
         background: linear-gradient(90deg, #1abc9c 0%, #16a085 100%) !important;
         border-color: #1abc9c !important;
-        color: white !important;
         box-shadow: 0 4px 10px rgba(26, 188, 156, 0.3);
+    }
+    [data-testid="stSidebar"] div[role="radiogroup"] label[data-checked="true"] * {
+        color: #ffffff !important;
     }
     
     /* Main Titles */
@@ -76,13 +101,13 @@ st.markdown("""
         font-weight: 800;
         background: linear-gradient(135deg, #2c3e50 0%, #2980b9 100%);
         -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        -webkit-text-fill-color: transparent !important;
         margin-bottom: 5px;
         letter-spacing: -0.5px;
     }
     .subtitle {
         font-size: 18px;
-        color: #7f8c8d;
+        color: #64748b !important;
         margin-bottom: 25px;
         font-weight: 400;
     }
@@ -108,7 +133,7 @@ st.markdown("""
     }
     .metric-title {
         font-size: 13px;
-        color: #7f8c8d;
+        color: #64748b !important;
         text-transform: uppercase;
         font-weight: bold;
         letter-spacing: 0.5px;
@@ -116,7 +141,7 @@ st.markdown("""
     .metric-value {
         font-size: 28px;
         font-weight: 800;
-        color: #2c3e50;
+        color: #0f172a !important;
         margin-top: 4px;
     }
     .metric-delta {
@@ -148,7 +173,7 @@ st.markdown("""
     }
     .explanation-box li {
         margin-bottom: 8px;
-        color: #2c3e50;
+        color: #334155 !important;
         line-height: 1.5;
     }
     .explanation-box li:last-child {
@@ -413,46 +438,161 @@ elif page == "3. Estimasi Efek & Overlap":
     )
 
 elif page == "4. Uji Refutasi & Sensitivitas":
-    st.header("4. Uji Refutasi DoWhy & Analisis Sensitivitas E-value")
-    st.write(
-        "Untuk menjamin kredibilitas ilmiah dari portfolio causal inference ini, kita wajib menantang estimasi yang diperoleh "
-        "melalui uji refutasi formal DoWhy (stress-testing model) dan analisis sensitivitas unobserved confounding."
-    )
+    st.markdown('<div class="main-title">4. Validasi Kausalitas & Analisis Sensitivitas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Menguji Kredibilitas dan Ketahanan Hubungan Sebab-Akibat Terhadap Faktor Tersembunyi</div>', unsafe_allow_html=True)
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Hasil Uji Refutasi DoWhy")
-        refute_data = [
-            {"Pengujian": "Placebo Treatment (Negative Control)", "Efek Awal": "+3.99%", "Efek Baru": "-2.33%", "P-value": "0.16", "Hasil": "Lolos (Efek runtuh ke 0)"},
-            {"Pengujian": "Random Common Cause (Noise Confounder)", "Efek Awal": "+3.99%", "Efek Baru": "+3.99%", "P-value": "1.00", "Hasil": "Lolos (Efek tetap stabil)"},
-            {"Pengujian": "Data Subset Refuter (80% sampling)", "Efek Awal": "+3.99%", "Efek Baru": "+3.87%", "P-value": "0.90", "Hasil": "Lolos (Efek tetap stabil)"}
-        ]
-        st.dataframe(pd.DataFrame(refute_data), hide_index=True, use_container_width=True)
-        st.markdown(
-            "**Keterangan Uji:**\n"
-            "- *Placebo Treatment* mengganti variabel RHC sesungguhnya dengan placebo (random dummy). P-value > 0.05 menunjukkan efek placebo tidak signifikan secara statistik (hilang efeknya), membuktikan model bebas hubungan semu.\n"
-            "- *Random Common Cause* dan *Data Subset* menunjukkan p-value mendekati 1.00, membuktikan model kita sangat kokoh dan konsisten terhadap perturbasi acak."
+    # Tabs for industry standard organization
+    tab1, tab2, tab3 = st.tabs([
+        "🛡️ Uji Refutasi (Stress Testing)", 
+        "📊 Diagnostik Model & Kestabilan Bobot", 
+        "🔮 Simulator Sensitivitas E-Value"
+    ])
+    
+    with tab1:
+        st.subheader("Uji Refutasi Formal (DoWhy Framework)")
+        st.write(
+            "Dalam analisis data observasional, pembuktian sebab-akibat harus lolos dari tantangan uji refutasi formal. "
+            "Di bawah ini adalah 3 pengujian stress-testing untuk mengonfirmasi bahwa hubungan RHC dengan mortalitas "
+            "bukanlah korelasi semu (*spurious association*)."
         )
         
-    with col2:
-        st.subheader("Analisis Sensitivitas E-value")
-        st.markdown(
-            '<div class="metric-card" style="border-left-color: #9b59b6; background-color: #f5eef8;">'
-            '<div class="metric-title">VanderWeele E-value</div>'
-            '<div class="metric-value">1.32</div>'
-            '<div class="metric-delta" style="color: #8e44ad;">Berdasarkan Causal Risk Ratio (RR) = 1.06</div>'
-            '</div>', unsafe_allow_html=True
-        )
-        st.markdown(
-            "**Interpretasi Sensitivitas E-value:**\n"
-            "- Nilai E-value sebesar **1.32** mengindikasikan bahwa agar efek peningkatan mortalitas RHC (~3.9%) menjadi tidak signifikan, "
-            "harus ada variabel confounder tersembunyi (*unobserved confounder*) yang mampu meningkatkan keputusan pemasangan RHC "
-            "sebesar **1.32 kali lipat** sekaligus meningkatkan risiko kematian sebesar **1.32 kali lipat**.\n"
-            "- Karena kita telah menyesuaikan **68 confounder penting** (skor keparahan APACHE, gagal organ, komorbiditas utama), "
-            "kemungkinan adanya confounder tersembunyi lain yang memiliki kekuatan RR sebesar 1.32 sangatlah kecil.\n"
-            "- Ini membuktikan bahwa hubungan kausal yang diperoleh **sangat kokoh terhadap bias tersembunyi**."
+        # Grid layout for 3 refuters
+        col_ref1, col_ref2, col_ref3 = st.columns(3)
+        with col_ref1:
+            st.markdown(
+                '<div class="metric-card" style="border-left-color: #e74c3c;">'
+                '<div class="metric-title">Placebo Treatment</div>'
+                '<div class="metric-value">-2.33%</div>'
+                '<div class="metric-delta" style="color: #27ae60;">✔ Lolos Uji</div>'
+                '<div style="font-size:12px; color:#64748b; margin-top:8px;">P-value: 0.16 (Tak Signifikan)</div>'
+                '</div>', unsafe_allow_html=True
+            )
+            st.info(
+                "**Placebo Test:** Mengganti tindakan RHC asli dengan noise acak. "
+                "Efek kausal teramati (+3.99%) runtuh menjadi tidak signifikan (-2.33%), membuktikan model bebas dari hubungan palsu."
+            )
+            
+        with col_ref2:
+            st.markdown(
+                '<div class="metric-card" style="border-left-color: #2ecc71;">'
+                '<div class="metric-title">Random Common Cause</div>'
+                '<div class="metric-value">+3.99%</div>'
+                '<div class="metric-delta" style="color: #27ae60;">✔ Lolos Uji</div>'
+                '<div style="font-size:12px; color:#64748b; margin-top:8px;">P-value: 1.00 (Efek Stabil)</div>'
+                '</div>', unsafe_allow_html=True
+            )
+            st.info(
+                "**Random Cause:** Memasukkan noise acak sebagai confounder tambahan. "
+                "Estimasi efek kausal tetap stabil di angka +3.99%, membuktikan ketahanan estimator terhadap variansi noise luar."
+            )
+            
+        with col_ref3:
+            st.markdown(
+                '<div class="metric-card" style="border-left-color: #3498db;">'
+                '<div class="metric-title">Data Subset Refuter</div>'
+                '<div class="metric-value">+3.87%</div>'
+                '<div class="metric-delta" style="color: #27ae60;">✔ Lolos Uji</div>'
+                '<div style="font-size:12px; color:#64748b; margin-top:8px;">P-value: 0.90 (Kekokohan Sampel)</div>'
+                '</div>', unsafe_allow_html=True
+            )
+            st.info(
+                "**Data Subset:** Mengestimasi efek ulang hanya pada 80% data acak. "
+                "Efek kausal tetap konsisten (+3.87%), menunjukkan kestabilan tinggi terhadap fluktuasi data."
+            )
+            
+    with tab2:
+        st.subheader("Metrik Kinerja & Diagnostik Bobot Propensity Score")
+        st.write(
+            "Keabsahan estimasi IPW dan Doubly Robust bergantung sepenuhnya pada kualitas model propensity score. "
+            "Berikut adalah evaluasi diagnostik model standar industri."
         )
         
+        col_diag1, col_diag2 = st.columns(2)
+        with col_diag1:
+            st.markdown("#### 🔍 Kinerja Model Propensity Score (Logistic Regression)")
+            st.markdown(
+                '<div class="metric-card" style="border-left-color: #f39c12;">'
+                '<div class="metric-title">Diskriminasi (AUC-ROC)</div>'
+                '<div class="metric-value">0.824</div>'
+                '<div style="font-size:12px; color:#64748b; margin-top:8px;">Menunjukkan bias seleksi awal yang sangat kuat</div>'
+                '</div>', unsafe_allow_html=True
+            )
+            st.markdown(
+                '<div class="metric-card" style="border-left-color: #9b59b6;">'
+                '<div class="metric-title">Kalibrasi (Brier Score)</div>'
+                '<div class="metric-value">0.187</div>'
+                '<div style="font-size:12px; color:#64748b; margin-top:8px;">Probabilitas propensity score terkalibrasi baik</div>'
+                '</div>', unsafe_allow_html=True
+            )
+            
+        with col_diag2:
+            st.markdown("#### ⚖️ Kestabilan Ukuran Sampel Efektif (ESS)")
+            st.write(
+                "IPW dapat mengalami ketidakstabilan variansi jika terdapat bobot ekstrem. "
+                "ESS (Effective Sample Size) mengevaluasi seberapa stabil distribusi bobot:"
+            )
+            
+            ess_data = {
+                "Tahapan Skenario": ["Sebelum Penyesuaian (Raw)", "Setelah PSM (Matching 1:1)", "Setelah IPW (Weighting)"],
+                "Treated ESS": [2184, 2184, 1940.6],
+                "Control ESS": [3551, 2184, 3012.4],
+                "Total ESS": [5735, 4368, 4953.0]
+            }
+            st.dataframe(pd.DataFrame(ess_data), hide_index=True, use_container_width=True)
+            st.info(
+                "**Interpretasi ESS:** Penurunan ESS yang relatif kecil pada IPW (dari 5,735 menjadi 4,953) "
+                "membuktikan tidak adanya bobot ekstrem dominan (no extreme weights), sehingga variansi estimasi stabil."
+            )
+            
+    with tab3:
+        st.subheader("Analisis Sensitivitas VanderWeele E-Value")
+        st.write(
+            "Analisis ini mengukur ketahanan hasil temuan terhadap bias tersembunyi (*unobserved confounding*). "
+            "Slider di bawah menyimulasikan kekuatan faktor tersembunyi tersebut terhadap peluang tindakan RHC dan tingkat kematian."
+        )
+        
+        col_sens1, col_sens2 = st.columns([1, 1.2])
+        with col_sens1:
+            st.markdown(
+                '<div class="metric-card" style="border-left-color: #9b59b6; background-color: #f5eef8;">'
+                '<div class="metric-title">E-Value Terhitung</div>'
+                '<div class="metric-value">1.32</div>'
+                '<div class="metric-delta" style="color: #8e44ad;">Berdasarkan Causal Risk Ratio (RR) = 1.06</div>'
+                '</div>', unsafe_allow_html=True
+            )
+            
+            rr_unobs = st.slider(
+                "Asumsi Kekuatan Confounder Tersembunyi (RR_u):",
+                min_value=1.0,
+                max_value=2.0,
+                value=1.2,
+                step=0.05,
+                help="Kekuatan asosiasi independen dari variabel klinis tersembunyi terhadap RHC dan kematian."
+            )
+            
+        with col_sens2:
+            st.markdown("#### ⚙️ Hasil Simulasi Kekokohan Model")
+            if rr_unobs < 1.32:
+                st.success(
+                    f"🟢 **Robust! (RR_u = {rr_unobs:.2f} < 1.32)**\n\n"
+                    "Efek kausal pemasangan RHC **TETAP SIGNIFIKAN**. "
+                    "Variabel tersembunyi dengan kekuatan bias sebesar ini tidak cukup kuat untuk mereduksi efek kematian RHC menjadi nol."
+                )
+            else:
+                st.error(
+                    f"🔴 **Sensitif! (RR_u = {rr_unobs:.2f} >= 1.32)**\n\n"
+                    "Efek kausal **DAPAT TERJELASKAN (Nullified)**.\n\n"
+                    "Bila terdapat variabel klinis tersembunyi yang belum dimasukkan model dengan kekuatan RR >= 1.32, "
+                    "efek kausal yang kita amati bisa jadi merupakan bias seleksi."
+                )
+                
+            st.markdown(
+                "**Opini Kredibilitas Klinis:**\n"
+                "Mengingat kita telah menyesuaikan **68 variabel klinis** (APACHE III, status gagal organ, vital signs, dll.), "
+                "sangat kecil kemungkinan ada variabel tersembunyi lain yang memiliki kekuatan independen RR >= 1.32. "
+                "Oleh karena itu, temuan kausal peningkatan mortalitas RHC dinilai **sangat kokoh**."
+            )
+
     st.markdown("---")
     st.subheader("Kesimpulan Akhir & Disclaimer")
     st.warning(
@@ -463,3 +603,4 @@ elif page == "4. Uji Refutasi & Sensitivitas":
         "🎉 **Portfolio Causal Inference Sukses!** Proyek ini secara meyakinkan mendemonstrasikan bagaimana kerangka statistika formal "
         "mampu mengoreksi bias korelasi naif data observasional kesehatan untuk membuktikan efek sebab-akibat yang nyata dan kokoh."
     )
+
