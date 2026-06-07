@@ -378,3 +378,70 @@ def plot_love_plot_comparison(unadjusted_smd_df, adjusted_smd_df, method_label="
     plt.savefig(output_path, dpi=300)
     plt.close()
     print(f"Love plot comparison saved to {output_path}")
+
+def plot_effect_comparison(summary_df, output_path=None):
+    """
+    Plots ATE and ATT estimates with their 95% confidence intervals.
+    """
+    if output_path is None:
+        output_path = os.path.join(PROJECT_ROOT, "reports", "figures", "07_effect_comparison.png")
+        
+    plt.figure(figsize=(9, 5))
+    
+    methods = summary_df['Metode'].tolist()
+    y_pos = np.arange(len(methods))
+    
+    ate_vals = summary_df['ATE'].values
+    ate_lower = summary_df['ATE_CI_Lower'].values
+    ate_upper = summary_df['ATE_CI_Upper'].values
+    
+    att_vals = summary_df['ATT'].values
+    att_lower = summary_df['ATT_CI_Lower'].values
+    att_upper = summary_df['ATT_CI_Upper'].values
+    
+    # Calculate error lengths
+    ate_errors = np.zeros((2, len(methods)))
+    att_errors = np.zeros((2, len(methods)))
+    
+    for i in range(len(methods)):
+        if not np.isnan(ate_vals[i]) and not np.isnan(ate_lower[i]) and not np.isnan(ate_upper[i]):
+            ate_errors[0, i] = ate_vals[i] - ate_lower[i]
+            ate_errors[1, i] = ate_upper[i] - ate_vals[i]
+            
+        if not np.isnan(att_vals[i]) and not np.isnan(att_lower[i]) and not np.isnan(att_upper[i]):
+            att_errors[0, i] = att_vals[i] - att_lower[i]
+            att_errors[1, i] = att_upper[i] - att_vals[i]
+            
+    # Plot ATE points and error bars
+    plt.errorbar(
+        ate_vals, y_pos - 0.15, xerr=ate_errors, fmt='o', color=PALETTE['neutral_blue'],
+        elinewidth=2, capsize=5, ms=8, label='ATE (Average Treatment Effect)', alpha=0.9
+    )
+    
+    # Plot ATT points and error bars
+    plt.errorbar(
+        att_vals, y_pos + 0.15, xerr=att_errors, fmt='D', color=PALETTE['treatment'],
+        elinewidth=2, capsize=5, ms=8, label='ATT (Effect on the Treated)', alpha=0.9
+    )
+    
+    # Draw vertical line at 0 (No effect)
+    plt.axvline(x=0.0, color='black', linestyle='--', linewidth=1.2, label='No Effect (ATE/ATT = 0)')
+    
+    plt.yticks(y_pos, methods)
+    plt.title("Perbandingan Efek Estimasi RHC Terhadap Mortalitas 30 Hari (95% CI)", pad=15, fontsize=13, fontweight='bold')
+    plt.xlabel("Estimasi Efek (Risk Difference)")
+    plt.ylabel("Metode Analisis")
+    plt.legend(loc="lower right")
+    plt.grid(True, linestyle=':', alpha=0.5)
+    plt.xlim(-0.02, 0.10)
+    
+    # Add percentage label to x-axis
+    import matplotlib.ticker as mtick
+    plt.gca().xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+    
+    plt.tight_layout()
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    plt.savefig(output_path, dpi=300)
+    plt.close()
+    print(f"Causal effect comparison plot saved to {output_path}")
